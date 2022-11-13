@@ -1,22 +1,26 @@
 import cookie from 'cookie';
+import Iron from '@hapi/iron';
 
 import App from '../src/App';
 
 export const getSessionCookie = async (cookies) => {
-  const cookie = cookies['auth.session'];
-
-  if (!cookie) {
-    throw new Error('Auth session not found');
+  try {
+    const cookie = cookies['auth.session'];
+  
+    if (!cookie) {
+      throw new Error('Auth session not found');
+    }
+    // Decrypt the auth cookie
+    const decoded = await Iron.unseal(
+      cookie,
+      process.env.SPOTIFY_SESSION_SECRET,
+      Iron.defaults,
+      );
+  
+    return decoded;
+  } catch(err) {
+    console.error(err);
   }
-
-  // Decrypt the auth cookie
-  const decoded = await Iron.unseal(
-    cookie,
-    process.env.SESSION_SECRET,
-    Iron.defaults,
-  );
-
-  return decoded;
 };
 
 export const getServerSideProps = async ({ req }) => {
